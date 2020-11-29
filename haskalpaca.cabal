@@ -1,0 +1,102 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 833428564998cb8cd6c285e2a440e345471b50fcddec38de192f58cd9f525db4
+
+name:           haskalpaca
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/robbiebarnhoorn/haskalpaca#readme>
+homepage:       https://github.com/robbiebarnhoorn/haskalpaca#readme
+bug-reports:    https://github.com/robbiebarnhoorn/haskalpaca/issues
+author:         Robbie Barnhoorn
+maintainer:     robbie.barnhoorn@gmail.com
+copyright:      2020 Robbie Barnhoorn
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/robbiebarnhoorn/haskalpaca
+
+library
+  exposed-modules:
+      Alpaca
+      TradeEngine
+  other-modules:
+      Paths_haskalpaca
+  hs-source-dirs:
+      src
+  build-depends:
+      Cabal
+    , aeson
+    , aeson-casing
+    , array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , lens
+    , lens-aeson
+    , pretty-simple
+    , text
+    , time
+    , utf8-string
+    , wreq
+  default-language: Haskell2010
+
+executable haskalpaca-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_haskalpaca
+  hs-source-dirs:
+      app
+  ghc-options: -haddock -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      Cabal
+    , aeson
+    , aeson-casing
+    , array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , haskalpaca
+    , lens
+    , lens-aeson
+    , pretty-simple
+    , text
+    , time
+    , utf8-string
+    , wreq
+  default-language: Haskell2010
+
+test-suite haskalpaca-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_haskalpaca
+  hs-source-dirs:
+      test
+  ghc-options: -haddock -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      Cabal
+    , aeson
+    , aeson-casing
+    , array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , haskalpaca
+    , lens
+    , lens-aeson
+    , pretty-simple
+    , text
+    , time
+    , utf8-string
+    , wreq
+  default-language: Haskell2010

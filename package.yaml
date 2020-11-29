@@ -1,6 +1,6 @@
-name:                free-money
+name:                haskalpaca
 version:             0.1.0.0
-github:              "robbiebarnhoorn/free-money"
+github:              "robbiebarnhoorn/haskalpaca"
 license:             BSD3
 author:              "Robbie Barnhoorn"
 maintainer:          "robbie.barnhoorn@gmail.com"
@@ -17,32 +17,47 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/robbiebarnhoorn/free-money#readme>
+description:         Please see the README on GitHub at <https://github.com/robbiebarnhoorn/haskalpaca#readme>
 
 dependencies:
+- aeson
+- aeson-casing
+- array
 - base >= 4.7 && < 5
+- bytestring
+- Cabal
+- containers
+- lens
+- lens-aeson
+- pretty-simple
+- text
+- time
+- utf8-string
+- wreq
 
 library:
   source-dirs: src
 
 executables:
-  free-money-exe:
+  haskalpaca-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
+    - -haddock
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - free-money
+    - haskalpaca
 
 tests:
-  free-money-test:
+  haskalpaca-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
+    - -haddock
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - free-money
+    - haskalpaca

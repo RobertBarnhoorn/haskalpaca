@@ -1,3 +1,3 @@
-# Changelog for free-money
+# Changelog for haskalpaca 
 
 ## Unreleased changes

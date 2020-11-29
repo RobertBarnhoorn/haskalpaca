@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import TradeEngine
 
 main :: IO ()
-main = someFunc
+main = run
