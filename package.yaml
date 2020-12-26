@@ -35,6 +35,10 @@ dependencies:
 - utf8-string
 - wreq
 
+default-extensions:
+- OverloadedStrings
+- LambdaCase
+
 library:
   source-dirs: src
 
