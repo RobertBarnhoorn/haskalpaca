@@ -104,7 +104,7 @@ queryOrders opts =
 
 queryOrder :: Options -> String -> IO (Response Value)
 queryOrder opts orderId =
-  asValue =<< getWith opts (ordersEndpoint ++ "/" ++ orderId)
+  asValue =<< getWith opts (ordersEndpoint <> "/" <> orderId)
 
 placeOrder :: Options -> Order -> IO (Response Value)
 placeOrder opts order =
@@ -121,4 +121,4 @@ cancelAllOrders opts = asValue =<< deleteWith opts ordersEndpoint
 
 cancelOrder :: Options -> String -> IO (Response Value)
 cancelOrder opts orderId =
-  asValue =<< deleteWith opts (ordersEndpoint ++ "/" ++ orderId)
+  asValue =<< deleteWith opts (ordersEndpoint <> "/" <> orderId)

@@ -15,27 +15,18 @@ seconds :: Int
 seconds = 1000000
 
 run :: IO ()
-run = do
-  print "Initializing:"
-  initialize
-  print "Trading:"
-  tradeLoop keyId secretKey
+run = authenticate >>= initialize >>= tradeLoop
 
-initialize = do
-  print "-- Retrieving authentication keys from local environment..."
-  keys <-
-    getAuthKeys
-      >>= ( \case
-              Just c -> return c
-              Nothing -> error "---- Problem retrieving auth keys. Quitting."
-          )
-  let auth = authOptions keys
-  print "---- Found keys and generated auth headers"
+authenticate :: IO Options
+authenticate =
+  getAuthKeys >>= \case
+    Just c -> return $ authOptions c
+    Nothing -> error "---- Problem retrieving auth keys. Quitting."
 
+initialize :: Options -> IO Options
+initialize auth = do
   print "-- Querying account status..."
-  accountReponse <- queryAccount auth
-  let account = accountReponse ^. responseBody
-  print account
+  print =<< queryAccount auth
   print "-- Success"
 
   print "--Querying orders..."
@@ -49,12 +40,12 @@ initialize = do
   let positions = positionsResponse ^. responseBody
   print positions
   print "-- Success"
-
   return auth
 
 tradeLoop :: Options -> IO ()
 tradeLoop auth = do
   print "Placing order..."
+
   let order =
         Order
           { _type = MARKET,
