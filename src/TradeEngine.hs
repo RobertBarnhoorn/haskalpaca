@@ -1,53 +1,43 @@
 module TradeEngine where
 
-import Client.Account
-import Client.Authentication
-import Client.Orders
-import Client.Positions
-import Config (getAuthKeys)
+import Alpaca.Account
+import Alpaca.Authentication
+import Alpaca.Orders
+import Alpaca.Positions
 import Control.Concurrent (threadDelay)
-import Control.Lens ((^.))
-import Data.Aeson hiding (Options)
-import Network.Wreq (Options, responseBody)
-
--- a million microseconds
-seconds :: Int
-seconds = 1000000
+import Network.Wreq (Options)
 
 run :: IO ()
 run = authenticate >>= initialize >>= tradeLoop
 
-authenticate :: IO Options
-authenticate =
-  getAuthKeys >>= \case
-    Just c -> return $ authOptions c
-    Nothing -> error "---- Problem retrieving auth keys. Quitting."
-
 initialize :: Options -> IO Options
-initialize auth = do
+initialize opts = do
   print "-- Querying account status..."
-  print =<< queryAccount auth
+  print =<< getAccount opts
   print "-- Success"
 
-  print "--Querying orders..."
-  ordersResponse <- queryOrders auth
-  let orders = ordersResponse ^. responseBody
-  print orders
+  print "-- Querying orders..."
+  print =<< getOrders opts
   print "-- Success"
 
-  print "--Querying positions..."
-  positionsResponse <- queryPositions auth
-  let positions = positionsResponse ^. responseBody
-  print positions
-  print "-- Success"
-  return auth
+  print "-- Querying $PLTR position..."
+  print =<< getPosition "AAPL" opts
+
+  print "-- Querying positions..."
+  print =<< getAllPositions opts
+
+  --  print "-- Closing $PLTR position..."
+  --  print =<< closePosition "PLTR" opts
+  --  print "-- Success"
+
+  return opts
 
 tradeLoop :: Options -> IO ()
-tradeLoop auth = do
+tradeLoop opts = do
   print "Placing order..."
 
   let order =
-        Order
+        OrderRequest
           { _type = MARKET,
             symbol = "PLTR",
             quantity = 1,
@@ -57,8 +47,9 @@ tradeLoop auth = do
             orderId = Nothing,
             advanced = Nothing
           }
-  print $ encode order
-  orderResponse <- placeOrder auth order
+  orderResponse <- placeOrder order opts
   print orderResponse
   threadDelay $ 10 * seconds
-  tradeLoop auth
+  tradeLoop opts
+  where
+    seconds = 1000000 -- a million microseconds

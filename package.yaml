@@ -38,6 +38,7 @@ dependencies:
 default-extensions:
 - OverloadedStrings
 - LambdaCase
+- DuplicateRecordFields
 
 library:
   source-dirs: src
