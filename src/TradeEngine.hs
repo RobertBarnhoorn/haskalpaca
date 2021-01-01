@@ -23,7 +23,7 @@ initialize opts = do
   print =<< getAllPositions opts
 
   print "-- Closing $PLTR position..."
-  print =<< closePosition "PLTR" 1 opts
+  print =<< liquidate "AMZN" 1 opts
   print "-- Success"
 
   print "-- Querying orders..."

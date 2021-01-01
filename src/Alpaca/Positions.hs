@@ -2,12 +2,13 @@ module Alpaca.Positions
   ( Position,
     getPosition,
     getAllPositions,
-    closePosition,
-    closeAllPositions,
+    liquidate,
+    liquidateEverything,
   )
 where
 
 import Alpaca.Endpoints (positionsEndpoint, (/.))
+import Alpaca.Orders hiding (Side)
 import Alpaca.Query (query)
 import Control.Lens ((&), (.~), (<&>))
 import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
@@ -80,15 +81,15 @@ getPosition symbol opts = queryPosition symbol (getWith opts)
 getAllPositions :: Options -> IO (Either String [Position])
 getAllPositions opts = queryPositions $ getWith opts
 
--- | Liquidate a number of shares in our position for the given symbol
--- TODO wrong decode type
-closePosition :: String -> Int -> Options -> IO (Either String Position)
-closePosition symbol qty opts = queryPosition symbol (deleteWith opts')
+-- | Liquidate a number of shares in our position for the given symbol. Places
+-- and returns the liquidation order. Works for both short and long positions.
+liquidate :: String -> Int -> Options -> IO (Either String Order)
+liquidate symbol qty opts = queryPosition symbol (deleteWith opts')
   where
     opts' = opts & params .~ [("qty", pack $ show qty)]
 
--- | Liquidate all of our open positions
+-- | Entirely liquidate all of our open positions
 -- TODO send query params
 -- TODO wrong decode type
-closeAllPositions :: Options -> IO (Either String [Position])
-closeAllPositions opts = queryPositions $ deleteWith opts
+liquidateEverything :: Options -> IO (Either String [Position])
+liquidateEverything opts = queryPositions $ deleteWith opts
