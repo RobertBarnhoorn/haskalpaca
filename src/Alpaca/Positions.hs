@@ -9,11 +9,12 @@ where
 
 import Alpaca.Endpoints (positionsEndpoint, (/.))
 import Alpaca.Query (query)
-import Control.Lens ((<&>))
+import Control.Lens ((&), (.~), (<&>))
 import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
 import Data.ByteString.Lazy (ByteString)
 import Data.Char (toUpper)
-import Network.Wreq (Options, Response, deleteWith, getWith)
+import Data.Text (pack)
+import Network.Wreq (Options, Response, deleteWith, getWith, params)
 
 data Side = LONG | SHORT
   deriving (Read, Show)
@@ -79,11 +80,12 @@ getPosition symbol opts = queryPosition symbol (getWith opts)
 getAllPositions :: Options -> IO (Either String [Position])
 getAllPositions opts = queryPositions $ getWith opts
 
--- | Liquidate our open position for the given symbol
--- TODO send query params
+-- | Liquidate a number of shares in our position for the given symbol
 -- TODO wrong decode type
-closePosition :: String -> Options -> IO (Either String Position)
-closePosition symbol opts = queryPosition symbol (deleteWith opts)
+closePosition :: String -> Int -> Options -> IO (Either String Position)
+closePosition symbol qty opts = queryPosition symbol (deleteWith opts')
+  where
+    opts' = opts & params .~ [("qty", pack $ show qty)]
 
 -- | Liquidate all of our open positions
 -- TODO send query params

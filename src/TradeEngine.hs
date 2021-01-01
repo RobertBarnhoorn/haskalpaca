@@ -16,19 +16,19 @@ initialize opts = do
   print =<< getAccount opts
   print "-- Success"
 
-  print "-- Querying orders..."
-  print =<< getOrders opts
-  print "-- Success"
-
-  print "-- Querying $PLTR position..."
+  print "-- Querying a specific position..."
   print =<< getPosition "AAPL" opts
 
   print "-- Querying positions..."
   print =<< getAllPositions opts
 
-  --  print "-- Closing $PLTR position..."
-  --  print =<< closePosition "PLTR" opts
-  --  print "-- Success"
+  print "-- Closing $PLTR position..."
+  print =<< closePosition "PLTR" 1 opts
+  print "-- Success"
+
+  print "-- Querying orders..."
+  print =<< getOrders opts
+  print "-- Success"
 
   return opts
 
