@@ -150,34 +150,34 @@ instance FromJSON Order where
   parseJSON = withObject "Order" $ \o ->
     Order
       <$> o .: "id"
-        <*> o .: "client_order_id"
-        <*> o .: "created_at"
-        <*> o .: "updated_at"
-        <*> o .: "submitted_at"
-        <*> o .: "filled_at"
-        <*> o .: "expired_at"
-        <*> o .: "canceled_at"
-        <*> o .: "failed_at"
-        <*> o .: "replaced_at"
-        <*> o .: "replaced_by"
-        <*> o .: "replaces"
-        <*> o .: "asset_id"
-        <*> o .: "symbol"
-        <*> o .: "asset_class"
-        <*> (o .: "qty" <&> read)
-        <*> (o .: "filled_qty" <&> read)
-        <*> (o .: "type" <&> read . map toUpper)
-        <*> (o .: "side" <&> read . map toUpper)
-        <*> (o .: "time_in_force" <&> read . map toUpper)
-        <*> (o .:? "limit_price")
-        <*> (o .:? "stop_price")
-        <*> (o .:? "filled_avg_price")
-        <*> (o .: "status" <&> read)
-        <*> o .: "extended_hours"
-        <*> o .: "legs"
-        <*> (o .:? "trail_price")
-        <*> (o .:? "trail_percent")
-        <*> (o .:? "hwm")
+      <*> o .: "client_order_id"
+      <*> o .: "created_at"
+      <*> o .: "updated_at"
+      <*> o .: "submitted_at"
+      <*> o .: "filled_at"
+      <*> o .: "expired_at"
+      <*> o .: "canceled_at"
+      <*> o .: "failed_at"
+      <*> o .: "replaced_at"
+      <*> o .: "replaced_by"
+      <*> o .: "replaces"
+      <*> o .: "asset_id"
+      <*> o .: "symbol"
+      <*> o .: "asset_class"
+      <*> (o .: "qty" <&> read)
+      <*> (o .: "filled_qty" <&> read)
+      <*> (o .: "type" <&> read . map toUpper)
+      <*> (o .: "side" <&> read . map toUpper)
+      <*> (o .: "time_in_force" <&> read . map toUpper)
+      <*> (o .:? "limit_price" <&> \x -> x <&> read)
+      <*> (o .:? "stop_price")
+      <*> (o .:? "filled_avg_price")
+      <*> (o .: "status" <&> read . map toUpper)
+      <*> o .: "extended_hours"
+      <*> o .: "legs"
+      <*> (o .:? "trail_price")
+      <*> (o .:? "trail_percent")
+      <*> (o .:? "hwm")
 
 -- | Run the HTTP query against the given order
 queryOrder ::

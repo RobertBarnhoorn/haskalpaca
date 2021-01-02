@@ -86,10 +86,9 @@ getAllPositions opts = queryPositions $ getWith opts
 liquidate :: String -> Int -> Options -> IO (Either String Order)
 liquidate symbol qty opts = queryPosition symbol (deleteWith opts')
   where
-    opts' = opts & params .~ [("qty", pack $ show qty)]
+    opts' = opts & params .~ [("qty", pack . show $ qty)]
 
 -- | Entirely liquidate all of our open positions
 -- TODO send query params
--- TODO wrong decode type
 liquidateEverything :: Options -> IO (Either String [Position])
 liquidateEverything opts = queryPositions $ deleteWith opts

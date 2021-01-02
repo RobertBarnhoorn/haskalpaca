@@ -16,26 +16,25 @@ initialize opts = do
   print =<< getAccount opts
   print "-- Success"
 
+  print "-- Querying orders..."
+  print =<< getOrders opts
+  print "-- Success"
+
+  print "-- Querying a specific order..."
+  print =<< getOrder "98257221-ea8d-44a8-bffc-7411b4b610d1" opts
+  print "-- Success"
+
   print "-- Querying a specific position..."
   print =<< getPosition "AAPL" opts
 
   print "-- Querying positions..."
   print =<< getAllPositions opts
 
-  print "-- Closing $PLTR position..."
-  print =<< liquidate "AMZN" 1 opts
-  print "-- Success"
-
-  print "-- Querying orders..."
-  print =<< getOrders opts
-  print "-- Success"
-
   return opts
 
 tradeLoop :: Options -> IO ()
 tradeLoop opts = do
-  print "Placing order..."
-
+  print "Placing $PLTR order..."
   let order =
         OrderRequest
           { _type = MARKET,
@@ -49,6 +48,11 @@ tradeLoop opts = do
           }
   orderResponse <- placeOrder order opts
   print orderResponse
+
+  print "-- Closing $PLTR position..."
+  print =<< liquidate "PLTR" 1 opts
+  print "-- Success"
+
   threadDelay $ 10 * seconds
   tradeLoop opts
   where
