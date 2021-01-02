@@ -52,12 +52,8 @@ tradeLoop opts = do
   print "Placing $AAPL order..."
   print orderResponse2
 
-  --  print "-- Liquidating 1 $PLTR share..."
-  --  print =<< liquidate "PLTR" 1 opts
-  --  print "-- Success"
-
-  print "-- Liquidating everything..."
-  print =<< liquidateEverything opts
+  print "-- Exiting market..."
+  print =<< exitMarket opts
   print "-- Success"
 
   threadDelay $ 10 * seconds

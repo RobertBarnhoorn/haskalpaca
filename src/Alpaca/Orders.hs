@@ -169,7 +169,7 @@ instance FromJSON Order where
       <*> (o .: "type" <&> read . map toUpper)
       <*> (o .: "side" <&> read . map toUpper)
       <*> (o .: "time_in_force" <&> read . map toUpper)
-      <*> (o .:? "limit_price" <&> \x -> x <&> read)
+      <*> (o .:? "limit_price" <&> (<&> read))
       <*> (o .:? "stop_price")
       <*> (o .:? "filled_avg_price")
       <*> (o .: "status" <&> read . map toUpper)

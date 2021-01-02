@@ -4,6 +4,7 @@ module Alpaca.Positions
     getAllPositions,
     liquidate,
     liquidateEverything,
+    exitMarket,
   )
 where
 
@@ -11,7 +12,7 @@ import Alpaca.Endpoints (positionsEndpoint, (/.))
 import Alpaca.Orders hiding (Side)
 import Alpaca.Query (query)
 import Control.Lens ((&), (.~), (<&>))
-import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
+import Data.Aeson (FromJSON, Value (Object), parseJSON, withObject, (.:), (.:?))
 import Data.ByteString.Lazy (ByteString)
 import Data.Char (toUpper)
 import Data.Text (pack)
@@ -76,7 +77,7 @@ instance FromJSON LiquidationResult where
     LiquidationResult
       <$> o .: "symbol"
       <*> ( o .: "status" <&> \x -> case (x :: Int) of
-              200 -> True
+              200 -> True -- HTTP 200 OK
               _ -> False
           )
       <*> ((o .: "body") >>= (.: "available") <&> read)
@@ -84,6 +85,13 @@ instance FromJSON LiquidationResult where
       <*> ((o .: "body") >>= (.: "held_for_orders") <&> read)
       <*> ((o .: "body") >>= (.: "related_orders"))
       <*> ((o .: "body") >>= (.: "message"))
+
+newtype ExitMarketResult = ExitMarketResult Order
+  deriving (Read, Show)
+
+instance FromJSON ExitMarketResult where
+  parseJSON = withObject "ExitMarketResult" $ \o ->
+    o .: "body" >>= \b -> fmap ExitMarketResult . parseJSON $ b
 
 -- | Run the HTTP query against our open position for the given symbol
 queryPosition ::
@@ -107,13 +115,19 @@ getAllPositions :: Options -> IO (Either String [Position])
 getAllPositions opts = queryPositions $ getWith opts
 
 -- | Liquidate a number of shares in our position for the given symbol. Places
--- and returns the liquidation order. Works for both short and long positions.
+-- and returns the liquidation order. Works for both short and long positions
 liquidate :: String -> Int -> Options -> IO (Either String Order)
 liquidate symbol qty opts = queryPosition symbol (deleteWith opts')
   where
     opts' = opts & params .~ [("qty", pack . show $ qty)]
 
 -- | Attempt to entirely liquidate all of our open positions
--- TODO send query params
 liquidateEverything :: Options -> IO (Either String [LiquidationResult])
 liquidateEverything opts = queryPositions $ deleteWith opts
+
+-- | Attempt to cancel all open orders and then entirely liquidate all of our
+-- open positions
+exitMarket :: Options -> IO (Either String [ExitMarketResult])
+exitMarket opts = queryPositions $ deleteWith opts'
+  where
+    opts' = opts & params .~ [("cancel_orders", pack . show $ True)]

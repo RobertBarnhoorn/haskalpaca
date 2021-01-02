@@ -1,4 +1,10 @@
-module Alpaca.Endpoints ((/.), accountEndpoint, ordersEndpoint, positionsEndpoint) where
+module Alpaca.Endpoints
+  ( (/.),
+    accountEndpoint,
+    ordersEndpoint,
+    positionsEndpoint,
+  )
+where
 
 (/.) :: String -> String -> String
 x /. y = x ++ "/" ++ y

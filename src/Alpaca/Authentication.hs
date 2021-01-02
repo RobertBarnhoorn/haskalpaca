@@ -11,7 +11,8 @@ data AuthConfig = AuthConfig
   }
   deriving (Read, Show)
 
--- | Fetch authentication keys from the system and create authentic HTTP Options
+-- | Fetch authentication keys from the system environment and create authentic
+-- HTTP Options
 authenticate :: IO Options
 authenticate =
   getAuthKeys >>= \case
