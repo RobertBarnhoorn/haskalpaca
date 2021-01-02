@@ -47,10 +47,17 @@ tradeLoop opts = do
             advanced = Nothing
           }
   orderResponse <- placeOrder order opts
+  orderResponse2 <- placeOrder order {symbol = "AAPL"} opts
   print orderResponse
+  print "Placing $AAPL order..."
+  print orderResponse2
 
-  print "-- Closing $PLTR position..."
-  print =<< liquidate "PLTR" 1 opts
+  --  print "-- Liquidating 1 $PLTR share..."
+  --  print =<< liquidate "PLTR" 1 opts
+  --  print "-- Success"
+
+  print "-- Liquidating everything..."
+  print =<< liquidateEverything opts
   print "-- Success"
 
   threadDelay $ 10 * seconds

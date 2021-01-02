@@ -60,6 +60,31 @@ instance FromJSON Position where
       <*> (o .: "lastday_price" <&> read)
       <*> (o .: "change_today" <&> read)
 
+data LiquidationResult = LiquidationResult
+  { symbol :: String,
+    success :: Bool,
+    available :: Integer,
+    existingQty :: Integer,
+    heldForOrders :: Integer,
+    relatedOrders :: [String],
+    message :: String
+  }
+  deriving (Read, Show)
+
+instance FromJSON LiquidationResult where
+  parseJSON = withObject "LiquidationResult" $ \o ->
+    LiquidationResult
+      <$> o .: "symbol"
+      <*> ( o .: "status" <&> \x -> case (x :: Int) of
+              200 -> True
+              _ -> False
+          )
+      <*> ((o .: "body") >>= (.: "available") <&> read)
+      <*> ((o .: "body") >>= (.: "existing_qty") <&> read)
+      <*> ((o .: "body") >>= (.: "held_for_orders") <&> read)
+      <*> ((o .: "body") >>= (.: "related_orders"))
+      <*> ((o .: "body") >>= (.: "message"))
+
 -- | Run the HTTP query against our open position for the given symbol
 queryPosition ::
   FromJSON a =>
@@ -88,7 +113,7 @@ liquidate symbol qty opts = queryPosition symbol (deleteWith opts')
   where
     opts' = opts & params .~ [("qty", pack . show $ qty)]
 
--- | Entirely liquidate all of our open positions
+-- | Attempt to entirely liquidate all of our open positions
 -- TODO send query params
-liquidateEverything :: Options -> IO (Either String [Position])
+liquidateEverything :: Options -> IO (Either String [LiquidationResult])
 liquidateEverything opts = queryPositions $ deleteWith opts
