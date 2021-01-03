@@ -1,4 +1,4 @@
-module Alpaca.Query (query, patchWith', postWith') where
+module Alpaca.Query where
 
 import Control.Exception (SomeException, try)
 import Control.Lens (view)
@@ -30,9 +30,9 @@ query endpoint f =
 
 -- | Re-order the arguments to work with query
 postWith' :: (Postable a) => Options -> a -> String -> IO (Response ByteString)
-postWith' opts postable endpoint = postWith opts endpoint postable
+postWith' opts = flip $ postWith opts
 
--- | Wreq does not export HTTP PATCH functions
+-- | HTTP PATCH. Works like other Wreq functions
 patchWith' :: (Postable a) => Options -> a -> String -> IO (Response ByteString)
 patchWith' opts postable endpoint =
   customPayloadMethodWith "PATCH" opts endpoint postable

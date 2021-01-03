@@ -32,38 +32,47 @@ data TimeInForce = DAY | GTC | OPG | CLS | IOC | FOK
   deriving (Read, Show)
 
 newtype TakeProfit = TakeProfit
-  { takeProfitlimitPrice :: Double -- required for bracket orders
+  { -- | Required for bracket orders
+    takeProfitlimitPrice :: Double
   }
   deriving (Read, Show)
 
 data StopLoss = StopLoss
-  { stopLossStopPrice :: Double, -- required for bracket orders
-    stopLosslimitPrice :: Double -- the stop-loss order becomes a stop-limit order if specified
+  { -- | Required for bracket orders
+    stopLossStopPrice :: Double,
+    -- | Turns a a stop-loss order into a stop-limit order
+    stopLosslimitPrice :: Double
   }
   deriving (Read, Show)
 
 data AdvancedParams
   = LimitParams
-      { limitPrice :: Maybe Double, -- req. if type is limit or stop_limit
-        stopPrice :: Maybe Double, -- req. if type is stop or stop_limit
-        extendedHours :: Maybe Bool -- only: limit and TIF = day
+      { -- | Required if order type is limit or stop limit
+        limitPrice :: Maybe Double,
+        -- | Required  if order type is stop or stop limit
+        stopPrice :: Maybe Double,
+        -- | Only applicable to limit orders where time in force = DAY
+        extendedHours :: Maybe Bool
       }
   | TrailingStopParams
-      { trailPrice :: Maybe Double, -- price or percent required if trailing_stop
-        trailPercent :: Maybe Double, -- price or percent required if trailing_stop
-        takeProfit :: Maybe TakeProfit, -- for take-profit leg of advanced orders
-        stopLoss :: Maybe StopLoss -- for stop-loss leg of advanced orders
+      { -- | Price or percent required for trailing stop orders
+        trailPrice :: Maybe Double,
+        -- | Price or percent required for trailing stop orders
+        trailPercent :: Maybe Double,
+        takeProfit :: Maybe TakeProfit,
+        stopLoss :: Maybe StopLoss
       }
   deriving (Read, Show)
 
 data OrderRequest = OrderRequest
-  { _type :: OrderType,
-    symbol :: String, -- symbol or id to identify the asset
+  { orderType :: OrderType,
+    symbol :: String,
     quantity :: Int,
     side :: Side,
     timeInForce :: TimeInForce,
     orderClass :: OrderClass,
-    orderId :: Maybe String, -- id for tracking; auto-generated if not sent
+    -- | Id for tracking by client; auto-generated if not sent
+    trackingId :: Maybe String,
     advanced :: Maybe AdvancedParams
   }
   deriving (Read, Show)
@@ -71,17 +80,17 @@ data OrderRequest = OrderRequest
 instance ToJSON OrderRequest where
   toJSON
     OrderRequest
-      { _type = _type,
+      { orderType = orderType,
         symbol = sym,
         quantity = qty,
         side = side,
         timeInForce = tif,
         orderClass = cls,
-        orderId = _,
-        advanced = _
+        trackingId = _, -- TODO custom order Id
+        advanced = _ -- TODO serialize advanced orders
       } =
       object
-        [ "type" .= map toLower (show _type),
+        [ "type" .= map toLower (show orderType),
           "symbol" .= sym,
           "qty" .= show qty,
           "side" .= map toLower (show side),
@@ -89,10 +98,8 @@ instance ToJSON OrderRequest where
           "order_class" .= map toLower (show cls)
         ]
 
--- | The lifecycle of an order consists of transitions through these states
--- An order may be canceled through the API up until the point it reaches a state of either filled, canceled, or expired
--- "Most users will likely never see their orders reach these states": ACCEPTED,
--- PENDING_NEW, ACCEPTED_FOR_BIDDING, STOPPED, REJECTED, SUSPENDED, CALCULATED
+-- | An order may be canceled through the API up until the point it reaches a
+-- state of either filled, canceled, or expired
 data Status
   = NEW
   | PARTIALLY_FILLED
@@ -113,8 +120,8 @@ data Status
   deriving (Read, Show)
 
 data Order = Order
-  { id :: String,
-    clientOrderId :: String, -- same as id if not specified at order request
+  { orderId :: String,
+    clientOrderId :: String,
     createdAt :: String,
     updatedAt :: Maybe String,
     submittedAt :: Maybe String,
@@ -123,26 +130,32 @@ data Order = Order
     canceledAt :: Maybe String,
     failedAt :: Maybe String,
     replacedAt :: Maybe String,
-    replacedBy :: Maybe String, -- id of the replacement order
-    replaces :: Maybe String, -- id of order which was replaced
-    asset_id :: String,
+    -- | Id of the replacement order
+    replacedBy :: Maybe String,
+    -- | Id of order which was replaced
+    replaces :: Maybe String,
+    assetId :: String,
     symbol :: String,
     asset_class :: String,
     qty :: Int,
     filled_qty :: Int,
-    _type :: OrderType,
+    orderType :: OrderType,
     side :: Side,
     timeInForce :: TimeInForce,
     limitPrice :: Maybe Double,
     stopPrice :: Maybe Double,
     filledAvgPrice :: Maybe Double,
     status :: Status,
-    extendedHours :: Bool, -- eligibility for execution outside regular hours
-    legs :: Maybe [Order], -- when querying nested non-simple order class orders
-    -- the below 3 parameters only  only apply for trailing-stop order types
-    trailPrice :: Maybe Double, -- dollars away from high water mark
-    trailPercent :: Maybe Double, -- percent away from the high water mark
-    hwm :: Maybe Double -- highest/lowest market price seen since order made
+    -- | Eligibility for execution outside regular hours
+    extendedHours :: Bool,
+    -- | All relevant orders when querying nested non-simple order class orders
+    legs :: Maybe [Order],
+    -- | Only trailing-stop orders: dollars away from high water mark
+    trailPrice :: Maybe Double,
+    -- | Only trailing-stop orders: percent away from the high water mark
+    trailPercent :: Maybe Double,
+    -- | Only trailing-stop orders: max/min market price seen since order made
+    hwm :: Maybe Double
   }
   deriving (Read, Show)
 
@@ -203,7 +216,6 @@ getOrders opts = queryOrders $ getWith opts
 -- | Place an order
 placeOrder :: OrderRequest -> Options -> IO (Either String Order)
 placeOrder order opts = do
-  print =<< postWith' opts (encode order) ordersEndpoint
   queryOrders $ postWith' opts (encode order)
 
 -- | Replaces an existing order, updating parameters to the new values
@@ -215,5 +227,5 @@ cancelOrder :: String -> Options -> IO (Either String Order)
 cancelOrder orderId opts = queryOrder orderId (deleteWith opts)
 
 -- | Cancel all orders
-cancelAllOrders :: Options -> IO (Either String [Order])
-cancelAllOrders opts = queryOrders (deleteWith opts)
+cancelOrders :: Options -> IO (Either String [Order])
+cancelOrders opts = queryOrders (deleteWith opts)

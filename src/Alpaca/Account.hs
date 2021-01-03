@@ -1,6 +1,6 @@
-module Alpaca.Account (Account (..), AccountStatus, getAccount) where
+module Alpaca.Account where
 
-import Alpaca.Endpoints (accountEndpoint)
+import Alpaca.Endpoints (accountEndpoint, (/.))
 import Alpaca.Query (query)
 import Control.Lens ((<&>))
 import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
@@ -17,11 +17,11 @@ data AccountStatus
   deriving (Read, Show)
 
 data Account = Account
-  { id :: String,
+  { accountId :: String,
     accountNumber :: String,
     status :: AccountStatus,
     currency :: String,
-    cash :: Double, -- account balance
+    cash :: Double,
     patternDayTrader :: Bool,
     tradeSuspendedByUser :: Bool,
     tradingBlocked :: Bool,
@@ -29,19 +29,32 @@ data Account = Account
     accountBlocked :: Bool,
     createdAt :: String,
     shortingEnabled :: Bool,
-    longMarketValue :: Double, -- real-time MtM value of all long positions
-    shortMarketValue :: Double, -- real-time MtM value of all short positions
-    equity :: Double, -- cash + long market value + short market value
-    lastEquity :: Double, -- equity as of previous trading day at 16:00:00 ET
-    multiplier :: Int, -- buying power multiplier a.k.a margin classification
-    buyingPower :: Double, -- currently available dollar buying power
-    initialMargin :: Double, -- Reg T initial margin requirement
-    maintenanceMargin :: Double, -- maintenance margin requirement
-    sma :: Double, -- value of special memorandum account
-    daytradeCount :: Int, -- number of daytrades made in the last 5 trading days
-    lastMaintenanceMargin :: Double, -- last day maintenance margin requirement
-    daytradingBuyingPower :: Double, -- buying power for day trades
-    regtBuyingPower :: Double -- buying power under Regulation T
+    -- | Real-time MtM value of all long positions
+    longMarketValue :: Double,
+    -- | Real-time MtM value of all short positions
+    shortMarketValue :: Double,
+    -- | Cash + long market value + short market value
+    equity :: Double,
+    -- | Equity as of previous trading day at 16:00:00 ET
+    lastEquity :: Double,
+    -- | Buying power multiplier a.k.a margin classification
+    multiplier :: Int,
+    -- | Currently available dollar buying power
+    buyingPower :: Double,
+    -- | Regulation T initial margin requirement
+    initialMargin :: Double,
+    -- | Maintenance margin requirement
+    maintenanceMargin :: Double,
+    -- | Value of special memorandum account
+    sma :: Double,
+    -- | Number of daytrades made in the last 5 trading days
+    daytradeCount :: Int,
+    -- | Last day maintenance margin requirement
+    lastMaintenanceMargin :: Double,
+    -- | Buying power for day trades
+    daytradingBuyingPower :: Double,
+    -- | Buying power under Regulation T
+    regtBuyingPower :: Double
   }
   deriving (Read, Show)
 
@@ -74,11 +87,11 @@ instance FromJSON Account where
       <*> (o .: "daytrading_buying_power" <&> read)
       <*> (o .: "regt_buying_power" <&> read)
 
--- | Run the HTTP query against our open position for the given symbol
+-- | Run the HTTP query against the account
 queryAccount ::
   FromJSON a => (String -> IO (Response ByteString)) -> IO (Either String a)
 queryAccount = query accountEndpoint
 
--- | Get information about our account
+-- | Get information about the account
 getAccount :: Options -> IO (Either String Account)
 getAccount opts = queryAccount $ getWith opts

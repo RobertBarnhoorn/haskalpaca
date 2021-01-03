@@ -1,18 +1,10 @@
-module Alpaca.Positions
-  ( Position,
-    getPosition,
-    getAllPositions,
-    liquidate,
-    liquidateEverything,
-    exitMarket,
-  )
-where
+module Alpaca.Positions where
 
 import Alpaca.Endpoints (positionsEndpoint, (/.))
-import Alpaca.Orders hiding (Side)
+import Alpaca.Orders (Order)
 import Alpaca.Query (query)
 import Control.Lens ((&), (.~), (<&>))
-import Data.Aeson (FromJSON, Value (Object), parseJSON, withObject, (.:), (.:?))
+import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
 import Data.ByteString.Lazy (ByteString)
 import Data.Char (toUpper)
 import Data.Text (pack)
@@ -21,6 +13,7 @@ import Network.Wreq (Options, Response, deleteWith, getWith, params)
 data Side = LONG | SHORT
   deriving (Read, Show)
 
+-- | Represents the position for a specific 'symbol'
 data Position = Position
   { assetId :: String,
     symbol :: String,
@@ -29,15 +22,23 @@ data Position = Position
     avgEntryPrice :: Double,
     qty :: Int,
     side :: Side,
-    marketValue :: Double, -- total dollar amount of the position
-    costBasis :: Double, -- total dollar cost basis
-    unrealizedPl :: Double, -- unrealized dollar P/L
-    unrealizedPlPct :: Double, -- unrealized P/L percent
-    unrealizedIntradayPl :: Double, -- unrealized dollar P/L for the day
-    unrealizedIntradayPlPct :: Double, -- unrealized P/L percent for the day
+    -- | Total dollar amount of the position
+    marketValue :: Double,
+    -- | Total dollar cost basis
+    costBasis :: Double,
+    -- | Unrealized dollar P/L
+    unrealizedPl :: Double,
+    -- | Unrealized P/L percent
+    unrealizedPlPct :: Double,
+    -- | Unrealized dollar P/L for the day
+    unrealizedIntradayPl :: Double,
+    -- | Unrealized P/L percent for the day
+    unrealizedIntradayPlPct :: Double,
     currentPrice :: Double,
-    lastdayPrice :: Double, -- closing value of the last trading day
-    changeToday :: Double -- percent change from last day price
+    -- | Closing value of the last trading day
+    lastdayPrice :: Double,
+    -- | Percent change from last day price
+    changeToday :: Double
   }
   deriving (Read, Show)
 
@@ -61,6 +62,8 @@ instance FromJSON Position where
       <*> (o .: "lastday_price" <&> read)
       <*> (o .: "change_today" <&> read)
 
+-- | Represents the success or failure of an attempted position liquidation,
+-- along with relevant diagnostics
 data LiquidationResult = LiquidationResult
   { symbol :: String,
     success :: Bool,
@@ -86,14 +89,17 @@ instance FromJSON LiquidationResult where
       <*> ((o .: "body") >>= (.: "related_orders"))
       <*> ((o .: "body") >>= (.: "message"))
 
+-- | Represents an 'Order' which is helping to exit the market. One of:
+--     * An 'Order' placed specifically to liquidate a position
+--     * A previously open 'Order' which has been cancelled
 newtype ExitMarketResult = ExitMarketResult Order
   deriving (Read, Show)
 
 instance FromJSON ExitMarketResult where
   parseJSON = withObject "ExitMarketResult" $ \o ->
-    o .: "body" >>= \b -> fmap ExitMarketResult . parseJSON $ b
+    o .: "body" >>= fmap ExitMarketResult . parseJSON
 
--- | Run the HTTP query against our open position for the given symbol
+-- | Run the HTTP query against the open position of the given symbol
 queryPosition ::
   FromJSON a =>
   String ->
@@ -101,32 +107,33 @@ queryPosition ::
   IO (Either String a)
 queryPosition symbol = query $ positionsEndpoint /. symbol
 
--- | Run the HTTP query against all of our open positions for the given symbol
+-- | Run the HTTP query against all open positions
 queryPositions ::
   FromJSON a => (String -> IO (Response ByteString)) -> IO (Either String a)
 queryPositions = query positionsEndpoint
 
--- | Get our open position for the given symbol
+-- | Get the open position for the given symbol
 getPosition :: String -> Options -> IO (Either String Position)
 getPosition symbol opts = queryPosition symbol (getWith opts)
 
--- | Get all of our open positions
-getAllPositions :: Options -> IO (Either String [Position])
-getAllPositions opts = queryPositions $ getWith opts
+-- | Get all open positions
+getPositions :: Options -> IO (Either String [Position])
+getPositions opts = queryPositions $ getWith opts
 
--- | Liquidate a number of shares in our position for the given symbol. Places
--- and returns the liquidation order. Works for both short and long positions
+-- | Liquidate a number of shares for the given symbol. Places and returns the
+-- liquidation order. Works for both short and long positions
 liquidate :: String -> Int -> Options -> IO (Either String Order)
 liquidate symbol qty opts = queryPosition symbol (deleteWith opts')
   where
     opts' = opts & params .~ [("qty", pack . show $ qty)]
 
--- | Attempt to entirely liquidate all of our open positions
+-- | Nuclear option. Attempt to entirely liquidate all open positions. Does not
+-- affect open orders
 liquidateEverything :: Options -> IO (Either String [LiquidationResult])
 liquidateEverything opts = queryPositions $ deleteWith opts
 
--- | Attempt to cancel all open orders and then entirely liquidate all of our
--- open positions
+-- | Nuclear option. Attempt to cancel all open orders and then entirely
+-- liquidate all open positions
 exitMarket :: Options -> IO (Either String [ExitMarketResult])
 exitMarket opts = queryPositions $ deleteWith opts'
   where

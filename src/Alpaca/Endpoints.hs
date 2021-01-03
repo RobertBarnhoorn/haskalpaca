@@ -1,13 +1,4 @@
-module Alpaca.Endpoints
-  ( (/.),
-    accountEndpoint,
-    ordersEndpoint,
-    positionsEndpoint,
-  )
-where
-
-(/.) :: String -> String -> String
-x /. y = x ++ "/" ++ y
+module Alpaca.Endpoints where
 
 baseEndpoint :: String
 baseEndpoint = "https://paper-api.alpaca.markets" /. "v2"
@@ -20,3 +11,7 @@ ordersEndpoint = baseEndpoint /. "orders"
 
 positionsEndpoint :: String
 positionsEndpoint = baseEndpoint /. "positions"
+
+-- | Append to a URL path
+(/.) :: String -> String -> String
+x /. y = x ++ "/" ++ y

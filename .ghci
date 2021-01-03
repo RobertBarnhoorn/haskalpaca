@@ -1,3 +1,0 @@
-:set -interactive-print=Text.Pretty.Simple.pPrint
-
-:set prompt "λ: "

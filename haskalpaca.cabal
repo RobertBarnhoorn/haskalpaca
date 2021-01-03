@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 74e3d5c5644692a78dd04e1ea9686b27018729aaff30a9c427eab772ce5f7eaa
+-- hash: 076029ba34294af39077049c36b181f24e1dd4dccdf6c0b16fe0243ed4bc0bfb
 
 name:           haskalpaca
 version:        0.1.0.0
@@ -19,7 +19,6 @@ license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
-    ChangeLog.md
 
 source-repository head
   type: git
@@ -28,13 +27,11 @@ source-repository head
 library
   exposed-modules:
       Alpaca.Account
-      Alpaca.AccountActivities
       Alpaca.Authentication
       Alpaca.Endpoints
       Alpaca.Orders
       Alpaca.Positions
       Alpaca.Query
-      TradeEngine
   other-modules:
       Paths_haskalpaca
   hs-source-dirs:
